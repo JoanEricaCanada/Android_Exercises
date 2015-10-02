@@ -6,14 +6,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class QuizActivity extends AppCompatActivity {
     private Button btnTrue;
     private Button btnFalse;
-    private Button btnNext;
-    private Button btnPrevious;
+    private ImageButton ImgBtnNext;
+    private ImageButton ImgBtnPrevious;
     private TextView txtVwQuestion;
 
     private TrueFalse[] questionBank = new TrueFalse[]{
@@ -55,8 +56,8 @@ public class QuizActivity extends AppCompatActivity {
             }
         });
 
-        btnNext = (Button) findViewById(R.id.next_button);
-        btnNext.setOnClickListener(new View.OnClickListener() {
+        ImgBtnNext = (ImageButton) findViewById(R.id.next_button);
+        ImgBtnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 currentIndex = (currentIndex + 1) % questionBank.length;
@@ -64,8 +65,8 @@ public class QuizActivity extends AppCompatActivity {
             }
         });
 
-        btnPrevious = (Button)findViewById(R.id.previous_button);
-        btnPrevious.setOnClickListener(new View.OnClickListener(){
+        ImgBtnPrevious = (ImageButton)findViewById(R.id.previous_button);
+        ImgBtnPrevious.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 currentIndex = ((currentIndex -1) % questionBank.length);
