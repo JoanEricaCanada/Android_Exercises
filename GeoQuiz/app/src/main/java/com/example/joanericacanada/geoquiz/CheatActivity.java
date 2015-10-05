@@ -2,6 +2,7 @@ package com.example.joanericacanada.geoquiz;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,8 +15,11 @@ import android.widget.TextView;
 public class CheatActivity extends Activity {
 
     private boolean answerIsTrue;
-    private TextView answerTextView;
+    
+    private TextView txtVwAnswer;
+    private TextView txtVwVersion;
     private Button showAnswer;
+    
     public static final String EXTRA_ANSWER_IS_TRUE = "com.example.joanericacanada.geoquiz.answer_is_true";
     public static final String EXTRA_ANSWER_SHOWN = "com.example.joanericacanada.geoquiz.answer_shown";
     private static final String KEY_CHEAT = "isCheater";
@@ -25,20 +29,23 @@ public class CheatActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cheat);
+        
+        //version text view
+        txtVwVersion = (TextView) findViewById(R.id.versionTextView);
+        txtVwVersion.setText("API level " + Integer.toString(Build.VERSION.SDK_INT));
 
         answerIsTrue = getIntent().getBooleanExtra(EXTRA_ANSWER_IS_TRUE, false);
-
-        answerTextView = (TextView) findViewById(R.id.answerTextView);
-
+        txtVwAnswer = (TextView) findViewById(R.id.answerTextView);
         setAnswerShownResult(false);
+        
         showAnswer = (Button) findViewById(R.id.showAnswerButton);
         showAnswer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (answerIsTrue) {
-                    answerTextView.setText(R.string.true_button);
+                    txtVwAnswer.setText(R.string.true_button);
                 } else {
-                    answerTextView.setText(R.string.false_button);
+                    txtVwAnswer.setText(R.string.false_button);
                 }
                 setAnswerShownResult(true);
             }
@@ -47,7 +54,7 @@ public class CheatActivity extends Activity {
         if (savedInstanceState != null){
             //currentIndex = savedInstanceState.getBoolean(KEY_CHEAT);
             answerIsTrue = savedInstanceState.getBoolean(KEY_CHEAT);
-            answerTextView.setText(Boolean.toString(answerIsTrue));
+            txtVwAnswer.setText(Boolean.toString(answerIsTrue));
             setAnswerShownResult(answerIsTrue);
 
         }
