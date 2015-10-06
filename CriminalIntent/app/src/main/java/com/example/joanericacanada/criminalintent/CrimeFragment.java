@@ -7,12 +7,19 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+
+import java.text.SimpleDateFormat;
 
 
 public class CrimeFragment extends Fragment {
     private Crime crime;
     private EditText edtTxtTitle;
+    private Button btnDate;
+    private CheckBox chkSolved;
 
 
     @Override
@@ -31,15 +38,30 @@ public class CrimeFragment extends Fragment {
                     CharSequence c, int start, int before, int count) {
                 crime.setTitle(c.toString());
             }
+
             public void beforeTextChanged(
                     CharSequence c, int start, int count, int after) {
-                    // This space intentionally left blank
+                // This space intentionally left blank
             }
+
             public void afterTextChanged(Editable c) {
                 // This one too
             }
         });
 
+        //DateFormat df = DateFormat.;
+
+        btnDate = (Button) v.findViewById(R.id.crime_date);
+        btnDate.setText(new SimpleDateFormat("EEEE MMM dd,yyyy").format(crime.getDate()));
+        btnDate.setEnabled(false);
+
+        chkSolved = (CheckBox) v.findViewById(R.id.crime_solved);
+        chkSolved.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                crime.setSolved(isChecked);
+            }
+        });
         return v;
     }
 }
