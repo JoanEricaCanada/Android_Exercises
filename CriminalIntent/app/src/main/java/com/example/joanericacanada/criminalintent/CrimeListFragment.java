@@ -1,5 +1,6 @@
 package com.example.joanericacanada.criminalintent;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
@@ -19,6 +20,13 @@ public class CrimeListFragment extends ListFragment {
 
     private ArrayList<Crime> crimes;
     private static final String TAG = "CrimeListFragment";
+    private static final int REQUEST_CRIME = 1;
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        ((CrimeAdapter)getListAdapter()).notifyDataSetChanged();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -34,9 +42,17 @@ public class CrimeListFragment extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id){
-        //Crime c = (Crime)(getListAdapter()).getItem(position);
         Crime c = ((CrimeAdapter)getListAdapter()).getItem(position);
         Log.d(TAG, c.getTitle() + " was clicked");
+        Intent i = new Intent(getActivity(), CrimeActivity.class);
+        startActivityForResult(i, REQUEST_CRIME);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == REQUEST_CRIME){
+
+        }
     }
 
     private class CrimeAdapter extends ArrayAdapter<Crime> {
