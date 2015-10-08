@@ -2,6 +2,6 @@
     android:id="@+id/helloMoonFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:name="com.example.joanericacanada.hellomoon.VideoPlayerFragment">
+    android:name="com.example.joanericacanada.hellomoon.HelloMoonFragment">
 </fragment>
 
