@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 /**
  * Created by joanericacanada on 10/7/15.
@@ -34,7 +33,6 @@ public class HelloMoonFragment extends Fragment {
                     btnPlay.setText(R.string.hellomoon_play);
                     isPaused = false;
                 }else {
-                    Toast.makeText(getContext(), btnPlay.getText(), Toast.LENGTH_SHORT).show();
                     mPlayer.play(getActivity());
                     btnPlay.setText(R.string.hellomoon_pause);
                     isPaused = true;
