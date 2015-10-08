@@ -2,6 +2,8 @@ package com.example.joanericacanada.criminalintent;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,6 +16,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,17 +25,20 @@ import java.util.UUID;
 
 
 public class CrimeFragment extends Fragment {
+    private static final String TAG = "CrimeFragment";
+
     private Crime crime;
     private EditText edtTxtTitle;
     private Button btnDate;
-    private Button btnTime;
     private CheckBox chkSolved;
+    private ImageButton imgBtnPhoto;
+    private ImageView imgVwPhoto;
 
     public static final String EXTRA_CRIME_ID = "com.example.joanericacanada.criminalintent.crime_id";
     private static final String DIALOG_DATE = "date";
-    private static final String DIALOG_TIME = "time";
+    private static final String DIALOG_IMAGE = "image";
     private static final int REQUEST_DATE = 0;
-    private static final int REQUEST_TIME = 1;
+    private static final int REQUEST_PHOTO = 1;
 
     public static CrimeFragment newInstance(UUID crimeId){
         Bundle args = new Bundle();
@@ -73,6 +80,38 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+        imgBtnPhoto = (ImageButton)v.findViewById(R.id.crime_imageButton);
+        imgBtnPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getActivity(), CrimeCameraActivity.class);
+                startActivityForResult(i, REQUEST_PHOTO);
+            }
+        });
+
+        imgVwPhoto = (ImageView)v.findViewById(R.id.crime_ImageView);
+        imgVwPhoto.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Photo p = crime.getPhoto();
+                if (p == null)
+                    return;
+                FragmentManager fm = getActivity()
+                        .getSupportFragmentManager();
+                String path = getActivity()
+                        .getFileStreamPath(p.getFilename()).getAbsolutePath();
+                ImageFragment.newInstance(path)
+                        .show(fm, DIALOG_IMAGE);
+            }
+        });
+
+        PackageManager pm = getActivity().getPackageManager();
+        if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA) &&
+                !pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+            imgBtnPhoto.setEnabled(false);
+        }
+
+
+
         //DATE BUTTON
         btnDate = (Button) v.findViewById(R.id.crime_date);
         updateDate();
@@ -82,18 +121,6 @@ public class CrimeFragment extends Fragment {
                 DatePickerFragment dialog = DatePickerFragment.newInstance(crime.getDate());
                 dialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
                 dialog.show(fm, DIALOG_DATE);
-            }
-        });
-
-        //TIME BUTTON
-        btnTime = (Button)v.findViewById(R.id.crime_time);
-        updateTime();
-        btnTime.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View view){
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-                TimePickerFragment dialog = TimePickerFragment.newInstance(crime.getTime());
-                dialog.setTargetFragment(CrimeFragment.this, REQUEST_TIME);
-                dialog.show(fm, DIALOG_TIME);
             }
         });
 
@@ -114,10 +141,6 @@ public class CrimeFragment extends Fragment {
         btnDate.setText(new SimpleDateFormat("EEEE, MMM dd,yyyy").format(crime.getDate()));
     }
 
-    public void updateTime(){
-        btnTime.setText(new SimpleDateFormat("hh:mm aa").format(crime.getTime()));
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         if(resultCode != Activity.RESULT_OK)
@@ -126,10 +149,38 @@ public class CrimeFragment extends Fragment {
             Date dateResult = (Date)data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             crime.setDate(dateResult);
             updateDate();
-        }else if(requestCode == REQUEST_TIME){
-            Date timeResult = (Date)data.getSerializableExtra(TimePickerFragment.EXTRA_TIME);
-            crime.setTime(timeResult);
-            updateTime();
+        }else if (requestCode == REQUEST_PHOTO) {
+            String filename = data
+                    .getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
+            if (filename != null) {
+                Photo p = new Photo(filename);
+                crime.setPhoto(p);
+                showPhoto();
+            }
         }
+
     }
+
+    private void showPhoto(){
+        Photo p = crime.getPhoto();
+        BitmapDrawable bitmapDrawable = null;
+        if(p != null){
+            String path = getActivity().getFileStreamPath(p.getFilename()).getAbsolutePath();
+            bitmapDrawable = PictureUtils.getScaledDrawable(getActivity(), path);
+        }
+        imgVwPhoto.setImageDrawable(bitmapDrawable);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        showPhoto();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        PictureUtils.cleanImageView(imgVwPhoto);
+    }
+
 }

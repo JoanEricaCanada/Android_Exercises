@@ -10,7 +10,6 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 /**
@@ -65,9 +64,9 @@ public class CrimeListFragment extends ListFragment {
             titleTextView.setText(c.getTitle());
             TextView dateTextView =
                     (TextView)convertView.findViewById(R.id.crime_list_item_dateTextView);
-            String df = new SimpleDateFormat("E MMM dd,yyyy").format(c.getDate());
-            String tf = new SimpleDateFormat("hh:mm aa").format(c.getTime());
-            dateTextView.setText(df + " " + tf);
+            //String df = new SimpleDateFormat("E MMM dd,yyyy").format(c.getDate());
+            //String tf = new SimpleDateFormat("hh:mm aa").format(c.getTime());
+            dateTextView.setText(c.getDate().toString());
             CheckBox solvedCheckBox =
                     (CheckBox)convertView.findViewById(R.id.crime_list_item_solvedCheckBox);
             solvedCheckBox.setChecked(c.isSolved());
