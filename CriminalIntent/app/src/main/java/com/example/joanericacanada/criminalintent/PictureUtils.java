@@ -3,6 +3,7 @@ package com.example.joanericacanada.criminalintent;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.Display;
 import android.widget.ImageView;
@@ -45,6 +46,18 @@ public class PictureUtils {
         BitmapDrawable b = (BitmapDrawable)imageView.getDrawable();
         b.getBitmap().recycle();
         imageView.setImageDrawable(null);
+    }
 
+    public static BitmapDrawable getPortraitDrawable(ImageView imgView, BitmapDrawable originalImage
+    ) {
+        Matrix matrix = new Matrix();
+
+        matrix.postRotate(90);
+        Bitmap br = Bitmap.createBitmap(originalImage.getBitmap(), 0, 0, originalImage.getIntrinsicWidth(),
+                originalImage.getIntrinsicHeight(),
+                matrix, true);
+        originalImage = new BitmapDrawable(imgView.getResources(), br);
+
+        return originalImage;
     }
 }

@@ -33,6 +33,7 @@ public class CrimeFragment extends Fragment {
     private CheckBox chkSolved;
     private ImageButton imgBtnPhoto;
     private ImageView imgVwPhoto;
+    private int orientation;
 
     public static final String EXTRA_CRIME_ID = "com.example.joanericacanada.criminalintent.crime_id";
     private static final String DIALOG_DATE = "date";
@@ -99,8 +100,8 @@ public class CrimeFragment extends Fragment {
                         .getSupportFragmentManager();
                 String path = getActivity()
                         .getFileStreamPath(p.getFilename()).getAbsolutePath();
-                ImageFragment.newInstance(path)
-                        .show(fm, DIALOG_IMAGE);
+                int orientation = p.getOrientation();
+                ImageFragment.newInstance(path, orientation).show(fm, DIALOG_IMAGE);
             }
         });
 
@@ -150,10 +151,10 @@ public class CrimeFragment extends Fragment {
             crime.setDate(dateResult);
             updateDate();
         }else if (requestCode == REQUEST_PHOTO) {
-            String filename = data
-                    .getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
+            String filename = data.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
+            int i = data.getIntExtra(CrimeCameraFragment.EXTRA_PHOTO_ORIENTATION, 0);
             if (filename != null) {
-                Photo p = new Photo(filename);
+                Photo p = new Photo(filename, i);
                 crime.setPhoto(p);
                 showPhoto();
             }
@@ -167,6 +168,12 @@ public class CrimeFragment extends Fragment {
         if(p != null){
             String path = getActivity().getFileStreamPath(p.getFilename()).getAbsolutePath();
             bitmapDrawable = PictureUtils.getScaledDrawable(getActivity(), path);
+
+            int orient = p.getOrientation();
+            if(orient == CrimeCameraActivity.ORIENTATION_PORTRAIT_INVERTED ||
+                    orient == CrimeCameraActivity.ORIENTATION_PORTRAIT_NORMAL){
+                bitmapDrawable = PictureUtils.getPortraitDrawable(imgVwPhoto, bitmapDrawable);
+            }
         }
         imgVwPhoto.setImageDrawable(bitmapDrawable);
     }
