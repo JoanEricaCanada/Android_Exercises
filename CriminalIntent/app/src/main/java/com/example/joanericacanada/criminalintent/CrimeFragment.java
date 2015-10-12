@@ -3,8 +3,11 @@ package com.example.joanericacanada.criminalintent;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
@@ -36,13 +39,18 @@ public class CrimeFragment extends Fragment {
     private ImageButton imgBtnPhoto;
     private Button btnDeletePhoto;
     private ImageView imgVwPhoto;
-    private boolean toDelete = false;
+    private Button btnReport;
+    private Button btnSuspect;
+    private Button btnDial;
+
+    private Uri contactUri;
 
     public static final String EXTRA_CRIME_ID = "com.example.joanericacanada.criminalintent.crime_id";
     private static final String DIALOG_DATE = "date";
     private static final String DIALOG_IMAGE = "image";
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_PHOTO = 1;
+    private static final int REQUEST_CONTACT = 2;
 
     public static CrimeFragment newInstance(UUID crimeId){
         Bundle args = new Bundle();
@@ -65,12 +73,11 @@ public class CrimeFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, parent, false);
 
-        //
+        //DELETE PHOTO BUTTON
         btnDeletePhoto = (Button) v.findViewById(R.id.delete_photo_button);
         btnDeletePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toDelete = true;
                 ClearPhoto();
             }
         });
@@ -78,6 +85,49 @@ public class CrimeFragment extends Fragment {
             btnDeletePhoto.setVisibility(View.VISIBLE);
         }
 
+        //DIAL BUTTON
+        btnDial = (Button) v.findViewById(R.id.crime_dial_button);
+        btnDial.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                    Intent i = new Intent(Intent.ACTION_DIAL);
+                    i.setData(Uri.parse("tel:" + crime.getContact()));
+                    startActivity(i);
+            }
+        });
+
+        if(crime.getSuspect() != null){
+            btnDial.setVisibility(View.VISIBLE);
+            btnDial.setText("Contact "+ crime.getSuspect().toString());
+        }
+
+        //REPORT BUTTON
+        btnReport = (Button) v.findViewById(R.id.crime_report_button);
+        btnReport.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_SEND);
+                i.setType("text/plain");
+                i.putExtra(Intent.EXTRA_TEXT, getCrimeReport());
+                i.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject));
+                i = Intent.createChooser(i, getString(R.string.send_report));
+                startActivity(i);
+            }
+        });
+
+        //SUSPECT BUTTON
+        btnSuspect = (Button) v.findViewById(R.id.crime_suspect_button);
+        btnSuspect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+                startActivityForResult(i, REQUEST_CONTACT);
+            }
+        });
+
+        if (crime.getSuspect() != null){
+            btnSuspect.setText(crime.getSuspect());
+        }
         //TITLE EDIT TEXT
         edtTxtTitle = (EditText)v.findViewById(R.id.crime_title);
         edtTxtTitle.setText(crime.getTitle());
@@ -176,7 +226,78 @@ public class CrimeFragment extends Fragment {
                 showPhoto();
                 btnDeletePhoto.setVisibility(View.VISIBLE);
             }
+        }else if(requestCode == REQUEST_CONTACT){
+            contactUri = data.getData();
+
+            /*
+            crime.setSuspect(suspect);
+            btnSuspect.setText(suspect);
+            btnDial.setText("Contact " + suspect);
+            btnDial.setVisibility(View.VISIBLE);
+            c.close();*/
+
+            String[] queryFields = new String[]{ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts._ID};
+            Cursor cursor = getActivity().getContentResolver().query(contactUri, queryFields, null, null, null);
+
+            if(cursor.getCount() == 0){
+                cursor.close();
+                return;
+            }
+
+            cursor.moveToFirst();
+            int indexId = cursor.getColumnIndex(ContactsContract.Contacts._ID);
+            int indexName = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME);
+            String contractId = cursor.getString(indexId);
+            String suspect = cursor.getString(indexName);
+            crime.setSuspect(suspect);
+
+            Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=" + contractId, null, null);
+
+            while(phones.moveToNext()){
+                String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                int type = phones.getInt(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
+                switch (type){
+                    case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+                        break;
+                    case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+                        crime.setContact(number);
+                        break;
+                    case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+                        break;
+                }
+            }
+            phones.close();
+            cursor.close();
+
+            btnSuspect.setText(crime.getSuspect());
+            if(crime.getContact() != null){
+                btnDial.setVisibility(View.VISIBLE);
+            }
+
         }
+
+    }
+
+    private String getCrimeReport(){
+        String solvedString = null;
+
+        if(crime.isSolved())
+            solvedString = getString(R.string.crime_report_solved);
+        else
+            solvedString = getString(R.string.crime_report_unsolved);
+
+        String dateString = new SimpleDateFormat("EEE, MMM dd").format(crime.getDate());
+        String suspect = crime.getSuspect();
+
+        if(suspect == null)
+            suspect = getString(R.string.crime_report_no_suspect);
+        else
+            suspect = getString(R.string.crime_report_suspect, suspect);
+
+        String report = getString(R.string.crime_report, crime.getTitle(), dateString, solvedString, suspect);
+
+        return report;
 
     }
 
@@ -205,7 +326,6 @@ public class CrimeFragment extends Fragment {
             Log.i(TAG, "JPEG saved at " + path);
         }
         imgVwPhoto.setImageDrawable(bitmapDrawable);
-        //Log.i(TAG, "JPEG saved at " + filename);
     }
 
     @Override
