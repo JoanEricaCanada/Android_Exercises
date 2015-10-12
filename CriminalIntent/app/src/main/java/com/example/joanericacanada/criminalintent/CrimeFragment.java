@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -32,8 +34,9 @@ public class CrimeFragment extends Fragment {
     private Button btnDate;
     private CheckBox chkSolved;
     private ImageButton imgBtnPhoto;
+    private Button btnDeletePhoto;
     private ImageView imgVwPhoto;
-    private int orientation;
+    private boolean toDelete = false;
 
     public static final String EXTRA_CRIME_ID = "com.example.joanericacanada.criminalintent.crime_id";
     private static final String DIALOG_DATE = "date";
@@ -61,6 +64,19 @@ public class CrimeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup parent,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, parent, false);
+
+        //
+        btnDeletePhoto = (Button) v.findViewById(R.id.delete_photo_button);
+        btnDeletePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toDelete = true;
+                ClearPhoto();
+            }
+        });
+        if (crime.getPhoto() != null){
+            btnDeletePhoto.setVisibility(View.VISIBLE);
+        }
 
         //TITLE EDIT TEXT
         edtTxtTitle = (EditText)v.findViewById(R.id.crime_title);
@@ -151,15 +167,27 @@ public class CrimeFragment extends Fragment {
             crime.setDate(dateResult);
             updateDate();
         }else if (requestCode == REQUEST_PHOTO) {
+            ClearPhoto();
             String filename = data.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
             int i = data.getIntExtra(CrimeCameraFragment.EXTRA_PHOTO_ORIENTATION, 0);
             if (filename != null) {
                 Photo p = new Photo(filename, i);
                 crime.setPhoto(p);
                 showPhoto();
+                btnDeletePhoto.setVisibility(View.VISIBLE);
             }
         }
 
+    }
+
+    private void ClearPhoto(){
+        if (crime.getPhoto() != null){
+            String filePath = getActivity().getFileStreamPath(crime.getPhoto().getFilename()).getAbsolutePath();
+            File file = new File(filePath);
+            file.delete();
+            crime.setPhoto(null);
+            PictureUtils.cleanImageView(imgVwPhoto);
+        }
     }
 
     private void showPhoto(){
@@ -174,14 +202,22 @@ public class CrimeFragment extends Fragment {
                     orient == CrimeCameraActivity.ORIENTATION_PORTRAIT_NORMAL){
                 bitmapDrawable = PictureUtils.getPortraitDrawable(imgVwPhoto, bitmapDrawable);
             }
+            Log.i(TAG, "JPEG saved at " + path);
         }
         imgVwPhoto.setImageDrawable(bitmapDrawable);
+        //Log.i(TAG, "JPEG saved at " + filename);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         showPhoto();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        CrimeLab.get(getActivity()).saveCrimes();
     }
 
     @Override

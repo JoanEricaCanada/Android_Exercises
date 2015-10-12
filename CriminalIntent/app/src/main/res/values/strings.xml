@@ -9,6 +9,9 @@
     <string name="date_picker_title">Date of crime:</string>
     <string name="time_picker_title">Time of crime:</string>
     <string name="take">Take!</string>
+    <string name="crime_suspect_text">Choose Suspect</string>
+    <string name="crime_report_text">Send Crime Report</string>
+
 
     <string name="action_settings">Settings</string>
 </resources>

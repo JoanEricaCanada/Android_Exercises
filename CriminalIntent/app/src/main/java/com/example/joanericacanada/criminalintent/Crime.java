@@ -17,7 +17,7 @@ public class Crime {
     private static final String JSON_PHOTO = "photo";
 
     private UUID id;
-    private String title;
+    private String title ;
     private Date date = new Date();
     private Photo photo;
     private boolean solved;
@@ -31,6 +31,9 @@ public class Crime {
         title = json.getString(JSON_TITLE);
         solved = json.getBoolean(JSON_SOLVED);
         date = new Date(json.getLong(JSON_DATE));
+        if (json.has(JSON_PHOTO))
+            photo = new Photo(json.getJSONObject(JSON_PHOTO));
+
     }
 
     public JSONObject toJSON() throws JSONException {

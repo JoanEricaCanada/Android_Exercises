@@ -31,6 +31,12 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/crime_imageButton"
                 android:src="@android:drawable/ic_menu_camera"/>
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/delete_photo_button"
+                android:text="Clear"
+                android:visibility="invisible"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="wrap_content"

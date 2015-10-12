@@ -62,6 +62,8 @@ public class CrimeCameraFragment extends Fragment {
                 }
             }
             if (success) {
+                Log.i(TAG, "JPEG saved at " + filename);
+
                 Intent i = new Intent();
                 i.putExtra(EXTRA_PHOTO_FILENAME, filename);
 
