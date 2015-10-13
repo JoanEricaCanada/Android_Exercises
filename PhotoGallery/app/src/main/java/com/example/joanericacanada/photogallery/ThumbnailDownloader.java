@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
+import android.widget.ImageView;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -48,12 +49,11 @@ public class ThumbnailDownloader<Token> extends HandlerThread {
     protected void onLooperPrepared(){
         handler = new Handler() {
             @Override
-            public void handleMessage(Message msg){
-                if(msg.what == MESSAGE_DOWNLOAD){
-                    @SuppressWarnings("unchecked")
-                            Token token = (Token) msg.obj;
-                    Log.i(TAG, "Got a request for url: " + requestMap.get(token));
-                    handleRequest(token);
+            public void handleMessage(Message msg) {
+                if (msg.what == MESSAGE_DOWNLOAD) {
+                    ImageView imageView = (ImageView)msg.obj;
+                    Log.i(TAG, "Got a request for url: " + requestMap.get(imageView));
+                    handleRequest(imageView);
                 }
             }
         };
@@ -68,10 +68,10 @@ public class ThumbnailDownloader<Token> extends HandlerThread {
                 .sendToTarget();
     }
 
-    private void handleRequest(final Token token){
+    private void handleRequest(final ImageView imageView){
         final Bitmap bitmap;
         try{
-            final String url = requestMap.get(token);
+            final String url = requestMap.get(imageView);
 
             if(url == null)
                 return;
@@ -87,11 +87,11 @@ public class ThumbnailDownloader<Token> extends HandlerThread {
             responseHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if (requestMap.get(token) != url)
+                    if (requestMap.get(imageView) != url)
                         return;
 
-                    requestMap.remove(token);
-                    listener.onThumbnailDownloaded(token, bitmap);
+                    requestMap.remove(imageView);
+                    imageView.setImageBitmap(bitmap);
                 }
             });
         }catch (IOException ioe){
