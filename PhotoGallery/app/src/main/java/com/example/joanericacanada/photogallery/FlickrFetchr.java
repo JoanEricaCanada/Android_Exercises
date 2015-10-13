@@ -32,7 +32,7 @@ public class FlickrFetchr {
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -58,14 +58,14 @@ public class FlickrFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public ArrayList<GalleryItem> fetchItems(Integer page) {
+    public ArrayList<GalleryItem> fetchItems() {
         ArrayList<GalleryItem> items = new ArrayList<GalleryItem>();
+
         try {
             String url = Uri.parse(ENDPOINT).buildUpon()
                     .appendQueryParameter("method", METHOD_GET_RECENT)
                     .appendQueryParameter("api_key", API_KEY)
                     .appendQueryParameter(PARAM_EXTRAS, EXTRA_SMALL_URL)
-                    .appendQueryParameter(PAGE, page.toString())
                     .build().toString();
             String xmlString = getUrl(url);
             Log.i(TAG, "Received xml: " + xmlString);
@@ -98,6 +98,7 @@ public class FlickrFetchr {
                 item.setUrl(smallUrl);
                 items.add(item);
             }
+
             eventType = parser.next();
         }
     }
