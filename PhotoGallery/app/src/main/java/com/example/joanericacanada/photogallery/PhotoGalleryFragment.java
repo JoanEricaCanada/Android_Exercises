@@ -65,6 +65,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
         new FetchItemsTask().execute();
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -76,7 +77,9 @@ public class PhotoGalleryFragment extends VisibleFragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 GalleryItem item = items.get(position);
                 Uri photoPageUri = Uri.parse(item.getPhotoPageUrl());
-                Intent i = new Intent(Intent.ACTION_VIEW, photoPageUri);
+                //Intent i = new Intent(Intent.ACTION_VIEW, photoPageUri);
+                Intent i = new Intent(getActivity(), PhotoPageActivity.class);
+                i.setData(photoPageUri);
 
                 startActivity(i);
 
