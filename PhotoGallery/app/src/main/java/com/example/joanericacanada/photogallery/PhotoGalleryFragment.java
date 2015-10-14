@@ -6,13 +6,14 @@ import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,6 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -29,7 +31,7 @@ import java.util.ArrayList;
 /**
  * Created by joanericacanada on 10/12/15.
  */
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
     GridView gridView;
     ArrayList<GalleryItem> items;
     ThumbnailDownloader<ImageView> thumbnailThread;
@@ -41,6 +43,10 @@ public class PhotoGalleryFragment extends Fragment {
         setHasOptionsMenu(true);
 
         updateItems();
+
+        /*Intent i = new Intent(getActivity(), PollService.class);
+        getActivity().startService(i);*/
+        PollService.setServiceAlarm(getActivity(), true);
 
         thumbnailThread = new ThumbnailDownloader<ImageView>(new Handler());
         thumbnailThread.setListener(new ThumbnailDownloader.Listener<ImageView>() {
@@ -65,7 +71,17 @@ public class PhotoGalleryFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
         gridView = (GridView)v.findViewById(R.id.gridView);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                GalleryItem item = items.get(position);
+                Uri photoPageUri = Uri.parse(item.getPhotoPageUrl());
+                Intent i = new Intent(Intent.ACTION_VIEW, photoPageUri);
 
+                startActivity(i);
+
+            }
+        });
         setupAdapter();
 
         return v;
@@ -104,6 +120,7 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     @Override
+    @TargetApi(11)
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_search:

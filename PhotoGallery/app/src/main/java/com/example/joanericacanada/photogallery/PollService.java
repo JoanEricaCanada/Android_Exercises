@@ -1,5 +1,6 @@
 package com.example.joanericacanada.photogallery;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
@@ -23,7 +24,14 @@ import java.util.ArrayList;
 public class PollService extends IntentService {
     private static final String TAG = "PollService";
 
-    private static final int POLL_INTERVAL = 1000 * 60 * 5; // 5 minutes
+    private static final int POLL_INTERVAL = 1000 * 15; // 15 secs
+    public static final String PREF_IS_ALARM_ON = "isAlarmOn";
+
+    public static final String ACTION_SHOW_NOTIFICATION =
+            "com.bignerdranch.android.photogallery.SHOW_NOTIFICATION";
+
+    public static final String PERM_PRIVATE =
+            "com.bignerdranch.android.photogallery.PRIVATE";
 
     public PollService() {
         super(TAG);
@@ -33,21 +41,23 @@ public class PollService extends IntentService {
     public void onHandleIntent(Intent intent) {
         ConnectivityManager connectManager = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
+
         @SuppressWarnings("deprecation")
         boolean isNetworkAvailable = connectManager.getBackgroundDataSetting() &&
                 connectManager.getActiveNetworkInfo() != null;
         if (!isNetworkAvailable) return;
+
+        Log.i(TAG, "Received an intent: " + intent);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String query = prefs.getString(FlickrFetchr.PREF_SEARCH_QUERY, null);
         String lastResultId = prefs.getString(FlickrFetchr.PREF_LAST_RESULT_ID, null);
 
         ArrayList<GalleryItem> items;
-        if (query != null) {
+        if (query != null)
             items = new FlickrFetchr().search(query);
-        } else {
+         else
             items = new FlickrFetchr().fetchItems();
-        }
 
         if (items.size() == 0)
             return;
@@ -72,9 +82,12 @@ public class PollService extends IntentService {
 
             NotificationManager notificationManager = (NotificationManager)
                     getSystemService(NOTIFICATION_SERVICE);
-
             notificationManager.notify(0, notification);
-        }
+            //sendBroadcast(new Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE);
+
+            showBackgroundNotification(0, notification);
+        }else
+            Log.i(TAG, "Got an old result: " + resultId);
 
         prefs.edit()
                 .putString(FlickrFetchr.PREF_LAST_RESULT_ID, resultId)
@@ -96,6 +109,10 @@ public class PollService extends IntentService {
             alarmManager.cancel(pendingIntent);
             pendingIntent.cancel();
         }
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putBoolean(PollService.PREF_IS_ALARM_ON, isOn)
+                .commit();
     }
 
     public static boolean isServiceAlarmOn(Context context) {
@@ -103,5 +120,14 @@ public class PollService extends IntentService {
         PendingIntent pendingIntent = PendingIntent.getService(
                 context, 0, i, PendingIntent.FLAG_NO_CREATE);
         return pendingIntent != null;
+    }
+
+    void showBackgroundNotification(int requestCode, Notification notification) {
+        Intent i = new Intent(ACTION_SHOW_NOTIFICATION);
+        i.putExtra("REQUEST_CODE", requestCode);
+        i.putExtra("NOTIFICATION", notification);
+
+        sendOrderedBroadcast(i, PERM_PRIVATE, new NotificationReceiver(), null, Activity.RESULT_OK, null, null);
+        //sendOrderedBroadcast(i, PERM_PRIVATE, new NotificationReceiver(), null, Activity.RESULT_OK, null, null);
     }
 }
